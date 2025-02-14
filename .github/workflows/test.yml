@@ -37,7 +37,7 @@ jobs:
       - name: Run tests
         run: |
           . .venv/bin/activate
-          pytest --cov=src --cov-report=xml
+          pytest
           
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -48,8 +48,20 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
 
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-results-${{ matrix.python-version }}
+          path: |
+            junit.xml
+            coverage.xml
+          retention-days: 30
+
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: always()
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: junit.xml
+          format: junit
